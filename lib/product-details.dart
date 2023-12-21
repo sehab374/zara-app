@@ -18,7 +18,6 @@ class ProductDetails extends StatefulWidget {
 }
 
 class _ProductDetailsState extends State<ProductDetails> {
-
   List<String> allImages = [];
 
   /////////////////////////////////////////color
@@ -69,12 +68,12 @@ class _ProductDetailsState extends State<ProductDetails> {
       });
     }
 
-    print("============================all images colors========================================");
+    print(
+        "============================all images colors========================================");
     print("length is ${allImages.length}");
     allImages.forEach((element) {
       print(element);
     });
-
 
     print("print color-------------------------------------------------");
     print("variationColorImg ${variationColorImg}");
@@ -106,7 +105,6 @@ class _ProductDetailsState extends State<ProductDetails> {
                   ProductVarientMaterialImages.add(element.imagePath!);
                   /////////////////////////////////////////////////////////
                   allImages.add(element.imagePath!);
-
                 });
                 variationMaterialImg.add(MaterialsModel(
                     id, materialName, ProductVarientMaterialImages));
@@ -121,7 +119,8 @@ class _ProductDetailsState extends State<ProductDetails> {
       print(element.materialsId);
     });
 
-    print("============================all images material========================================");
+    print(
+        "============================all images material========================================");
 
     print("length is ${allImages.length}");
     allImages.forEach((element) {
@@ -135,8 +134,7 @@ class _ProductDetailsState extends State<ProductDetails> {
     // });
   }
 
-  void initSizeMethod() async
-  {
+  void initSizeMethod() async {
     int id = widget.id;
     Details details = await ApiManager.getDetails(id);
 
@@ -169,7 +167,8 @@ class _ProductDetailsState extends State<ProductDetails> {
       print(element.sizeName);
     });
 
-    print("============================all images size========================================");
+    print(
+        "============================all images size========================================");
     print("length is ${allImages.length}");
 
     allImages.forEach((element) {
@@ -185,15 +184,16 @@ class _ProductDetailsState extends State<ProductDetails> {
 
   int currentIndex = 0;
 
-  List<Widget> images = [
-    Image.asset("assets/images/test.jpg"),
-    Image.asset("assets/images/test.jpg"),
-    Image.asset("assets/images/test.jpg"),
-  ];
+  // List<Widget> images = [
+  //   Image.asset("assets/images/test.jpg"),
+  //   Image.asset("assets/images/test.jpg"),
+  //   Image.asset("assets/images/test.jpg"),
+  // ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        backgroundColor: Colors.black12,
         appBar: AppBar(
           backgroundColor: Colors.black,
           title: Text("product details",
@@ -206,6 +206,114 @@ class _ProductDetailsState extends State<ProductDetails> {
         ),
         body: Column(
           children: [
+            FutureBuilder(
+              future: ApiManager.getDetails(widget.id),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting)
+                  return Center(child: CircularProgressIndicator());
+                if (snapshot.hasError)
+                  return Text("${snapshot.data!.message!}");
+
+                /////////////////////////////////////////////////////////
+                //var details = snapshot.data?.data ?? [];
+
+                var brandImg = snapshot.data!.data!.brandImage;
+                var brandname = snapshot.data!.data!.brandName;
+                var productname = snapshot.data!.data!.name;
+                var description = snapshot.data!.data!.description;
+                var price = snapshot.data!.data!.variations!.first.price;
+
+
+                return Column(
+                  children: [
+                    // Row(
+                    //   children: [
+                    //     ListView.builder(
+                    //       itemBuilder: (context, index) {
+                    //         return variationColorImg.isNotEmpty
+                    //             ? Text(variationColorImg[index].colorCode)
+                    //             : Text("hi");
+                    //       },
+                    //       itemCount: variationColorImg.length,
+                    //     )
+                    //   ],
+                    // ),
+
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 5),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            children: [
+                              Text("${productname}",
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 16)),
+                              Text("EGP ${price}",
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 16))
+                            ],
+                          ),
+                          Column(
+                            children: [
+                              CachedNetworkImage(
+                                height: 30,
+                                width: 30,
+                                imageUrl: brandImg ?? "",
+                                imageBuilder: (context, imageProvider) {
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(15),
+                                        image: DecorationImage(
+                                            image: imageProvider,
+                                            fit: BoxFit.cover)),
+                                  );
+                                },
+                                placeholder: (context, url) =>
+                                    Center(child: CircularProgressIndicator()),
+                                errorWidget: (context, url, error) =>
+                                    Icon(Icons.error),
+                              ),
+                              Text("$brandname",
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 18))
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(15),
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("Description",
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 18)),
+                            Text(description ?? "",
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 16)),
+                          ]),
+                    ),
+
+                    // Row(children: [
+                    //   ListView.builder(itemBuilder: (context, index) {
+                    //
+                    //     return Container(child: Text(),
+                    //       height: 50,
+                    //       width: 50,);
+                    //   },)
+                    // ],)
+                  ],
+                );
+
+                //   ListView.builder(itemBuilder: (context, index) {
+                //   return Text(sources[index].name ?? "");
+                // }, itemCount: sources.length,);
+              },
+            )
+
             // //////////////////////////////////////////////////////////////////
             // variationColorImg.isNotEmpty
             //     ? CachedNetworkImage(
@@ -234,18 +342,23 @@ class _ProductDetailsState extends State<ProductDetails> {
             //     itemCount: variationColorImg.length,
             //   ),
             // )
-            Text("hello"),
 
-            Expanded(
-              child: ListView.builder(
-                itemBuilder: (context, index) {
-                  return Text((allImages.isNotEmpty)
-                      ? "${index} = ${allImages[index]}++++"
-                      : "empty");
-                },
-                itemCount: variationColorImg.length,
-              ),
-            )
+            ///////////////////////////////////////////////////////////
+
+            // Text("hello"),
+            // Text("length${allImages.length}"),
+
+            ///////////////////////////////////////////////////////////
+            // Expanded(
+            //   child: ListView.builder(
+            //     itemBuilder: (context, index) {
+            //       return Text((allImages.isNotEmpty)
+            //           ? "${index} = ${allImages[index]}++++"
+            //           : "empty");
+            //     },
+            //     itemCount: variationColorImg.length,
+            //   ),
+            // )
           ],
 
           // ///////model to widget
