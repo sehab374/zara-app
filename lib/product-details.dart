@@ -1,17 +1,18 @@
+// ignore_for_file: non_constant_identifier_names, avoid_function_literals_in_foreach_calls
+
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:slash/models/colors.dart';
 import 'package:slash/models/details.dart';
 import 'package:slash/models/materials.dart';
 import 'package:slash/models/sizes.dart';
-import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+
 import 'network/remote/api_manager.dart';
 
 class ProductDetails extends StatefulWidget {
   int id;
 
-  ProductDetails(this.id);
+  ProductDetails(this.id, {super.key});
 
   @override
   State<ProductDetails> createState() => _ProductDetailsState();
@@ -31,33 +32,40 @@ class _ProductDetailsState extends State<ProductDetails> {
   /////////////////////////////////////////material
   List<MaterialsModel> variationMaterialImg = [];
   List<String> ProductVarientMaterialImages = [];
+  Details? details;
+  int currentIndex = 0;
+  int colorIndex = 0;
+  bool availbleProFlag = false;
 
   @override
   void initState() {
+    print(widget.id);
+    initMethod();
     super.initState();
-    initColorMethod();
-    initMaterialMethod();
-    initSizeMethod();
   }
 
-  void initColorMethod() async {
-    int id = widget.id;
-    Details details = await ApiManager.getDetails(id);
-    //print("colors+++++++${details.data}");
-    if (details.data!.avaiableProperties != null &&
-        details.data!.avaiableProperties!.isNotEmpty) {
-      details.data!.avaiableProperties!.forEach((element) {
+  initMethod() async {
+    details = await ApiManager.getDetails(widget.id);
+    print(details!.data!.avaiableProperties![0].values![0].value);
+  }
+
+  Future<List<ColorModel>> initColorMethod() async {
+    variationColorImg = [];
+    details = await ApiManager.getDetails(widget.id);
+    if (details!.data!.avaiableProperties != null &&
+        details!.data!.avaiableProperties!.isNotEmpty) {
+      details!.data!.avaiableProperties!.forEach((element) {
         if (element.property == "Color") {
           element.values!.forEach((element) {
             int id = element.id!;
             String colorCode = element.value!;
-            details.data!.variations!.forEach((element) {
+            details!.data!.variations!.forEach((element) {
               if (element.id == id) {
                 ProductVarientColorImages = [];
                 element.productVarientImages!.forEach((element) {
                   ProductVarientColorImages.add(element.imagePath!);
                   /////////////////////////////////////////////////////////
-                  allImages.add(element.imagePath!);
+                  // allImages.add(element.imagePath!);
                 });
                 variationColorImg
                     .add(ColorModel(id, colorCode, ProductVarientColorImages));
@@ -66,39 +74,23 @@ class _ProductDetailsState extends State<ProductDetails> {
           });
         }
       });
+    } else {
+      availbleProFlag = true;
     }
-
-    print(
-        "============================all images colors========================================");
-    print("length is ${allImages.length}");
-    allImages.forEach((element) {
-      print(element);
-    });
-
-    print("print color-------------------------------------------------");
-    print("variationColorImg ${variationColorImg}");
-    variationColorImg.forEach((element) {
-      print("new element-------------------------------------------------");
-      print("element.colorCode = ${element.colorCode}");
-      print("element.colorId = ${element.colorId}");
-
-      print("element.variationImgs = ${element.variationImgs}");
-    });
+    return variationColorImg;
   }
 
-  void initMaterialMethod() async {
-    int id = widget.id;
-    Details details = await ApiManager.getDetails(id);
-
-    print("material++++++${details.data}");
-    if (details.data!.avaiableProperties != null &&
-        details.data!.avaiableProperties!.isNotEmpty) {
-      details.data!.avaiableProperties!.forEach((element) {
+  Future<List<MaterialsModel>> initMaterialMethod() async {
+    variationMaterialImg = [];
+    details = await ApiManager.getDetails(widget.id);
+    if (details!.data!.avaiableProperties != null &&
+        details!.data!.avaiableProperties!.isNotEmpty) {
+      details!.data!.avaiableProperties!.forEach((element) {
         if (element.property == "Materials") {
           element.values!.forEach((element) {
             int id = element.id!;
             String materialName = element.value!;
-            details.data!.variations!.forEach((element) {
+            details!.data!.variations!.forEach((element) {
               if (element.id == id) {
                 ProductVarientMaterialImages = [];
                 element.productVarientImages!.forEach((element) {
@@ -114,39 +106,20 @@ class _ProductDetailsState extends State<ProductDetails> {
         }
       });
     }
-    print(variationMaterialImg);
-    variationMaterialImg.forEach((element) {
-      print(element.materialsId);
-    });
-
-    print(
-        "============================all images material========================================");
-
-    print("length is ${allImages.length}");
-    allImages.forEach((element) {
-      print(element);
-    });
-
-    // variationMaterialImg.forEach((element) {
-    //   element.variationImgs.forEach((element) {
-    //     allImages.add(element);
-    //   });
-    // });
+    return variationMaterialImg;
   }
 
-  void initSizeMethod() async {
-    int id = widget.id;
-    Details details = await ApiManager.getDetails(id);
-
-    print("size++++++${details.data}");
-    if (details.data!.avaiableProperties != null &&
-        details.data!.avaiableProperties!.isNotEmpty) {
-      details.data!.avaiableProperties!.forEach((element) {
+  Future<List<SizesModel>> initSizeMethod() async {
+    variationSizeImg = [];
+    details = await ApiManager.getDetails(widget.id);
+    if (details!.data!.avaiableProperties != null &&
+        details!.data!.avaiableProperties!.isNotEmpty) {
+      details!.data!.avaiableProperties!.forEach((element) {
         if (element.property == "Size") {
           element.values!.forEach((element) {
             int id = element.id!;
             String sizeName = element.value!;
-            details.data!.variations!.forEach((element) {
+            details!.data!.variations!.forEach((element) {
               if (element.id == id) {
                 ProductVarientSizeImages = [];
                 element.productVarientImages!.forEach((element) {
@@ -162,33 +135,8 @@ class _ProductDetailsState extends State<ProductDetails> {
         }
       });
     }
-    print(variationSizeImg);
-    variationSizeImg.forEach((element) {
-      print(element.sizeName);
-    });
-
-    print(
-        "============================all images size========================================");
-    print("length is ${allImages.length}");
-
-    allImages.forEach((element) {
-      print(element);
-    });
-
-    // variationSizeImg.forEach((element) {
-    //   element.variationImgs.forEach((element) {
-    //     allImages.add(element);
-    //   });
-    // });
+    return variationSizeImg;
   }
-
-  int currentIndex = 0;
-
-  // List<Widget> images = [
-  //   Image.asset("assets/images/test.jpg"),
-  //   Image.asset("assets/images/test.jpg"),
-  //   Image.asset("assets/images/test.jpg"),
-  // ];
 
   @override
   Widget build(BuildContext context) {
@@ -196,180 +144,316 @@ class _ProductDetailsState extends State<ProductDetails> {
         backgroundColor: Colors.black12,
         appBar: AppBar(
           backgroundColor: Colors.black,
-          title: Text("product details",
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 26,
-                  fontWeight: FontWeight.w400)),
+          title: const Text(
+            "product details",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 26,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
           centerTitle: true,
-          iconTheme: IconThemeData(color: Colors.white),
+          iconTheme: const IconThemeData(
+            color: Colors.white,
+          ),
         ),
-        body: Column(
-          children: [
-            FutureBuilder(
-              future: ApiManager.getDetails(widget.id),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting)
-                  return Center(child: CircularProgressIndicator());
-                if (snapshot.hasError)
-                  return Text("${snapshot.data!.message!}");
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              Column(
+                children: [
+                  FutureBuilder(
+                    future: ApiManager.getDetails(widget.id),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting)
+                        return Center(child: CircularProgressIndicator());
+                      if (snapshot.hasError)
+                        return Text("${snapshot.data!.message!}");
 
-                /////////////////////////////////////////////////////////
-                //var details = snapshot.data?.data ?? [];
+                      /////////////////////////////////////////////////////////
+                      //var details = snapshot.data?.data ?? [];
 
-                var brandImg = snapshot.data!.data!.brandImage;
-                var brandname = snapshot.data!.data!.brandName;
-                var productname = snapshot.data!.data!.name;
-                var description = snapshot.data!.data!.description;
-                var price = snapshot.data!.data!.variations!.first.price;
+                      var brandImg = snapshot.data!.data!.brandImage;
+                      var brandname = snapshot.data!.data!.brandName;
+                      var productname = snapshot.data!.data!.name;
+                      var description = snapshot.data!.data!.description;
+                      var price = snapshot.data!.data!.variations!.first.price;
 
-
-                return Column(
-                  children: [
-                    // Row(
-                    //   children: [
-                    //     ListView.builder(
-                    //       itemBuilder: (context, index) {
-                    //         return variationColorImg.isNotEmpty
-                    //             ? Text(variationColorImg[index].colorCode)
-                    //             : Text("hi");
-                    //       },
-                    //       itemCount: variationColorImg.length,
-                    //     )
-                    //   ],
-                    // ),
-
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 5),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      return Column(
                         children: [
-                          Column(
-                            children: [
-                              Text("${productname}",
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 16)),
-                              Text("EGP ${price}",
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 16))
-                            ],
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 5),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  children: [
+                                    Text("${productname}",
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 16)),
+                                    Text("EGP ${price}",
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 16))
+                                  ],
+                                ),
+                                Column(
+                                  children: [
+                                    CachedNetworkImage(
+                                      height: 30,
+                                      width: 30,
+                                      imageUrl: brandImg ?? "",
+                                      imageBuilder: (context, imageProvider) {
+                                        return Container(
+                                          decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(15),
+                                              image: DecorationImage(
+                                                  image: imageProvider,
+                                                  fit: BoxFit.cover)),
+                                        );
+                                      },
+                                      placeholder: (context, url) => Center(
+                                          child: CircularProgressIndicator()),
+                                      errorWidget: (context, url, error) =>
+                                          Icon(Icons.error),
+                                    ),
+                                    Text("$brandname",
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 18))
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                          Column(
-                            children: [
-                              CachedNetworkImage(
-                                height: 30,
-                                width: 30,
-                                imageUrl: brandImg ?? "",
-                                imageBuilder: (context, imageProvider) {
-                                  return Container(
-                                    decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(15),
-                                        image: DecorationImage(
-                                            image: imageProvider,
-                                            fit: BoxFit.cover)),
-                                  );
-                                },
-                                placeholder: (context, url) =>
-                                    Center(child: CircularProgressIndicator()),
-                                errorWidget: (context, url, error) =>
-                                    Icon(Icons.error),
-                              ),
-                              Text("$brandname",
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 18))
-                            ],
+                          Padding(
+                            padding: const EdgeInsets.all(15),
+                            child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text("Description",
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 18)),
+                                  Text(description ?? "",
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 16)),
+                                ]),
                           ),
                         ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(15),
-                      child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text("Description",
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 18)),
-                            Text(description ?? "",
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 16)),
-                          ]),
-                    ),
+                      );
+                    },
+                  )
+                ],
+              ),
 
-                    // Row(children: [
-                    //   ListView.builder(itemBuilder: (context, index) {
-                    //
-                    //     return Container(child: Text(),
-                    //       height: 50,
-                    //       width: 50,);
-                    //   },)
-                    // ],)
-                  ],
-                );
+              ///////////////////////////////////////////////////////////////////////////////
+              ///////////////////////////////////////////////////////////////////////////////
+              ///////////////////////////////////////////////////////////////////////////////
+              if (availbleProFlag)
+                ListView(
+                  physics: const BouncingScrollPhysics(),
+                  children: details!.data!.variations!
+                      .map(
+                        (e) => SizedBox(
+                          height: 100,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: e.productVarientImages!
+                                  .map(
+                                    (e) => SizedBox(
+                                      width: 100,
+                                      height: 100,
+                                      child: Image.network(
+                                        "${e.imagePath}.jpg",
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
+              if (!availbleProFlag)
+                FutureBuilder(
+                    future: initColorMethod(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        List<ColorModel> listC = snapshot.data!;
+                        return listC.isNotEmpty
+                            ? Column(
+                                children: [
+                                  Image(
+                                    fit: BoxFit.fill,
+                                    height: 300,
+                                    width: double.infinity,
+                                    image: NetworkImage(
+                                      "${listC[colorIndex].variationImgs[currentIndex]}.jpg", //////currentIndex==0
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    height: 20,
+                                  ),
+                                  Row(
+                                    children: listC
+                                        .toSet()
+                                        .toList()[colorIndex]
+                                        .variationImgs
+                                        .toSet()
+                                        .toList()
+                                        .asMap()
+                                        .entries
+                                        .map(
+                                      (e) {
+                                        int idx = e.key;
+                                        return InkWell(
+                                          onTap: () {
+                                            setState(() {
+                                              currentIndex = idx;
+                                            });
+                                          },
+                                          child: Container(
+                                            width: 50,
+                                            height: 50,
+                                            decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(12)),
+                                            child: Image(
+                                              image: NetworkImage(
+                                                "${e.value}.jpg",
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ).toList(),
+                                  ),
+                                  const SizedBox(
+                                    height: 50,
+                                  ),
+                                  SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                      children: listC
+                                          .toSet()
+                                          .toList()
+                                          .asMap()
+                                          .entries
+                                          .toSet()
+                                          .toList()
+                                          .map(
+                                            (e) => InkWell(
+                                              onTap: () {
+                                                print(listC);
+                                                setState(() {
+                                                  colorIndex = e.key;
+                                                });
+                                              },
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                child: CircleAvatar(
+                                                  radius: 25,
+                                                  backgroundColor: Color(
+                                                    int.parse(
+                                                        "0xFF${e.value.colorCode.replaceAll("#", "")}"),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          )
+                                          .toList()
+                                          .toSet()
+                                          .toList(),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Container();
+                      }
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }),
 
-                //   ListView.builder(itemBuilder: (context, index) {
-                //   return Text(sources[index].name ?? "");
-                // }, itemCount: sources.length,);
-              },
-            )
+              // FutureBuilder(
+              //     future: initSizeMethod(),
+              //     builder: (context, snapshot) {
+              //       if (snapshot.hasData) {
+              //         List<SizesModel> listC = snapshot.data!;
+              //         return Row(
+              //           children: listC.isNotEmpty
+              //               ? listC[0]
+              //                   .variationImgs
+              //                   .map(
+              //                     (e) => Image(image: NetworkImage("$e.jpg")),
+              //                   )
+              //                   .toList()
+              //               : [],
+              //         );
+              //       }
+              //       return const Center(
+              //         child: CircularProgressIndicator(),
+              //       );
+              //     }),
 
-            // //////////////////////////////////////////////////////////////////
-            // variationColorImg.isNotEmpty
-            //     ? CachedNetworkImage(
-            //         imageUrl: variationColorImg[0].variationImgs[0] ?? "",
-            //         imageBuilder: (context, imageProvider) {
-            //           return Container(
-            //             decoration: BoxDecoration(
-            //                 borderRadius: BorderRadius.circular(15),
-            //                 image: DecorationImage(
-            //                     image: imageProvider, fit: BoxFit.cover)),
-            //           );
-            //         },
-            //         placeholder: (context, url) =>
-            //             Center(child: CircularProgressIndicator()),
-            //         errorWidget: (context, url, error) => Icon(Icons.error),
-            //       )
-            //     : Text("hello ")
-
-            // Expanded(
-            //   child: ListView.builder(
-            //     itemBuilder: (context, index) {
-            //       return Text((variationColorImg.isNotEmpty)
-            //           ? "${variationColorImg[index].variationImgs[0]}++++"
-            //           : "empty");
-            //     },
-            //     itemCount: variationColorImg.length,
-            //   ),
-            // )
-
-            ///////////////////////////////////////////////////////////
-
-            // Text("hello"),
-            // Text("length${allImages.length}"),
-
-            ///////////////////////////////////////////////////////////
-            // Expanded(
-            //   child: ListView.builder(
-            //     itemBuilder: (context, index) {
-            //       return Text((allImages.isNotEmpty)
-            //           ? "${index} = ${allImages[index]}++++"
-            //           : "empty");
-            //     },
-            //     itemCount: variationColorImg.length,
-            //   ),
-            // )
-          ],
-
-          // ///////model to widget
-          // ////0 is index of 1st index in value //63 in color
-          //
-          // children: (variationColorImg.isNotEmpty)
-          //     ? variationColorImg[1]
-          //         .variationImgs
-          //         .map((e) => Image.network(e))
-          //         .toList()
-          //     : []
+              // FutureBuilder(
+              //     future: initMaterialMethod(),
+              //     builder: (context, snapshot) {
+              //       if (snapshot.hasData) {
+              //         List<MaterialsModel> listC = snapshot.data!;
+              //         print("hhhhhhhhhhhhhhhhhhhhhhh${listC[0].variationImgs}");
+              //         return Column(
+              //           children: listC[0]
+              //               .variationImgs
+              //               .map(
+              //                 (e) => Image(image: NetworkImage("$e.jpg")),
+              //               )
+              //               .toList(),
+              //
+              //           // Expanded(
+              //           //   child: ListView.builder(
+              //           //     itemBuilder: (context, index) {
+              //           //       return Text((variationColorImg.isNotEmpty)
+              //           //           ? "${variationColorImg[index].variationImgs[0]}++++"
+              //           //           : "empty");
+              //           //     },
+              //           //     itemCount: variationColorImg.length,
+              //           //   ),
+              //           // ),
+              //           // const Text("hello"),
+              //           // Expanded(
+              //           //   child: ListView.builder(
+              //           //     itemBuilder: (context, index) {
+              //           //       return Text((allImages.isNotEmpty)
+              //           //           ? "$index = ${allImages[index]}++++"
+              //           //           : "empty");
+              //           //     },
+              //           //     itemCount: variationColorImg.length,
+              //           //   ),
+              //           // )
+              //           //],
+              //
+              //           // ///////model to widget
+              //           // ////0 is index of 1st index in value //63 in color
+              //           //
+              //           // children: (variationColorImg.isNotEmpty)
+              //           //     ? variationColorImg[1]
+              //           //         .variationImgs
+              //           //         .map((e) => Image.network(e))
+              //           //         .toList()
+              //           //     : []
+              //         );
+              //       }
+              //       return const Center(
+              //         child: CircularProgressIndicator(),
+              //       );
+              //     }),
+            ],
+          ),
         ));
   }
 }
